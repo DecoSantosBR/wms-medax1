@@ -4807,3 +4807,14 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] Diagnosticar causa raiz: advanceItem ia direto para 'all_done' sem chamar completeMut
 - [x] Corrigir advanceItem: sempre vai para 'location_done' (completeMut é disparado pelo botão)
 - [x] Adicionar atualização de pickingWaves.status para 'picked' na procedure complete quando todos os pedidos da onda estiverem concluídos
+
+---
+## 🐛 Bug fix: confirmFinish retorna "Nenhum item encontrado" - 28/02/2026
+- [x] Diagnosticar por que itemsWithQty retorna vazio no confirmFinish (modal mostra 0/0/0/0)
+  - Causa raiz: prepareFinish e finish usavam activeTenantId (do usuário logado) para filtrar receivingOrderItems
+  - Admin global (tenantId=1) sem passar input.tenantId não encontrava itens do tenant 2
+- [x] Corrigir a query de itemsWithQty para buscar os itens conferidos corretamente
+  - Solução: substituir activeTenantId por orderTenantId (order.tenantId) em todas as queries de receivingOrderItems e inventory dentro de prepareFinish e finish
+- [x] Adicionar proteção de idempotência: finish e prepareFinish rejeitam sessão já completed
+- [x] Adicionar proteção de idempotência: start rejeita ordem já completed
+- [x] Testes de regressão: 4 testes passando em blindConference.tenant.fix.test.ts

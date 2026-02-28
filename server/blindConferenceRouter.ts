@@ -85,6 +85,14 @@ export const blindConferenceRouter = router({
         throw new Error("Ordem de recebimento não encontrada");
       }
 
+      // Impedir nova sessão para ordem já finalizada
+      if (order[0].status === 'completed') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Esta ordem de recebimento já foi finalizada e não pode ser conferida novamente.'
+        });
+      }
+
       // ✅ USAR tenantId DA ORDEM, NÃO DO USUÁRIO
       const orderTenantId = order[0].tenantId;
 
@@ -1095,6 +1103,14 @@ export const blindConferenceRouter = router({
         });
       }
 
+      // Impedir prepareFinish para sessão já concluída
+      if (session[0].status === 'completed') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Esta sessão de conferência já foi finalizada.'
+        });
+      }
+
       // 2. BUSCAR ORDEM DE RECEBIMENTO
       const [order] = await db.select()
         .from(receivingOrders)
@@ -1105,13 +1121,18 @@ export const blindConferenceRouter = router({
         throw new Error("Ordem de recebimento não encontrada");
       }
 
+      // orderTenantId: tenant da ordem (usado para filtrar receivingOrderItems)
+      // activeTenantId: tenant do usuário logado (usado para segurança e criação de registros)
+      // Para admin global sem tenantId, usamos o tenant da ordem para encontrar os itens
+      const orderTenantId = order.tenantId;
+
       // 3. CALCULAR E ATUALIZAR addressedQuantity
       const orderItems = await db.select()
         .from(receivingOrderItems)
         .where(
           and(
             eq(receivingOrderItems.receivingOrderId, session[0].receivingOrderId),
-            eq(receivingOrderItems.tenantId, activeTenantId)
+            eq(receivingOrderItems.tenantId, orderTenantId)
           )
         );
 
@@ -1201,6 +1222,14 @@ export const blindConferenceRouter = router({
           });
         }
 
+        // Impedir re-finalização de sessão já concluída
+        if (session[0].status === 'completed') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Esta sessão de conferência já foi finalizada.'
+          });
+        }
+
         // Buscar receivingOrder para obter tenantId correto
         const [order] = await tx.select()
           .from(receivingOrders)
@@ -1214,6 +1243,8 @@ export const blindConferenceRouter = router({
         const orderTenantId = order.tenantId;
 
         // 2. BUSCAR ITENS COM addressedQuantity JÁ CALCULADO (pelo prepareFinish)
+        // Usa orderTenantId (tenant da ordem) para garantir que admin global encontre os itens
+        // mesmo sem passar tenantId no input
         const itemsWithQty = await tx.select({
           id: receivingOrderItems.id,
           productId: receivingOrderItems.productId,
@@ -1230,7 +1261,7 @@ export const blindConferenceRouter = router({
           .where(
             and(
               eq(receivingOrderItems.receivingOrderId, session[0].receivingOrderId),
-              eq(receivingOrderItems.tenantId, activeTenantId)
+              eq(receivingOrderItems.tenantId, orderTenantId)
             )
           );
 
@@ -1254,7 +1285,7 @@ export const blindConferenceRouter = router({
           .from(warehouseLocations)
           .where(
             and(
-              eq(warehouseLocations.tenantId, activeTenantId),
+              eq(warehouseLocations.tenantId, orderTenantId),
               eq(warehouseLocations.zoneId, zoneREC[0].id)
             )
           )
@@ -1302,7 +1333,7 @@ export const blindConferenceRouter = router({
             .where(
               and(
                 eq(inventory.uniqueCode, item.uniqueCode || ""),
-                eq(inventory.tenantId, activeTenantId),
+                eq(inventory.tenantId, orderTenantId),
                 eq(inventory.locationZone, 'REC')
               )
             )
@@ -1321,7 +1352,7 @@ export const blindConferenceRouter = router({
           } else {
             // Criar novo inventory
             await tx.insert(inventory).values({
-              tenantId: activeTenantId,
+              tenantId: orderTenantId,
               productId: item.productId,
               locationId: locationId,
               batch: item.batch || "",
@@ -1350,7 +1381,7 @@ export const blindConferenceRouter = router({
             .from(warehouseLocations)
             .where(
               and(
-                eq(warehouseLocations.tenantId, activeTenantId),
+                eq(warehouseLocations.tenantId, orderTenantId),
                 eq(warehouseLocations.zoneId, ncgZone[0].id)
               )
             )
@@ -1368,7 +1399,7 @@ export const blindConferenceRouter = router({
                 .where(
                   and(
                     eq(inventory.uniqueCode, item.uniqueCode || ""),
-                    eq(inventory.tenantId, activeTenantId),
+                    eq(inventory.tenantId, orderTenantId),
                     eq(inventory.status, "quarantine"),
                     eq(inventory.locationId, ncgLocation[0].id)
                   )
@@ -1385,7 +1416,7 @@ export const blindConferenceRouter = router({
                 // - uniqueCode original: é o mesmo produto físico, apenas com status diferente.
                 //   A segregação é feita por locationId (NCG) + status (quarantine).
                 await tx.insert(inventory).values({
-                  tenantId: activeTenantId,
+                  tenantId: orderTenantId,
                   productId: item.productId,
                   locationId: ncgLocationId,
                   batch: item.batch || "",
@@ -1416,7 +1447,7 @@ export const blindConferenceRouter = router({
             .from(warehouseLocations)
             .where(
               and(
-                eq(warehouseLocations.tenantId, activeTenantId),
+                eq(warehouseLocations.tenantId, orderTenantId),
                 eq(warehouseLocations.zoneId, ncgZone[0].id)
               )
             )
