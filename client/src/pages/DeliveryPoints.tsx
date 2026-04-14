@@ -1,4 +1,3 @@
-import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -32,9 +31,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, QrCode, Building2, Package, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, QrCode, Building2, Package, RefreshCw, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 // ── QR Code Canvas ────────────────────────────────────────────────────────────
 
@@ -83,6 +83,9 @@ const emptyForm: FormData = {
 
 export default function DeliveryPoints() {
   const utils = trpc.useUtils();
+  const { user } = useAuth();
+
+  const isGlobalAdmin = user?.role === "admin" && (user?.tenantId === 1 || user?.tenantId === null);
 
   const [filterType, setFilterType] = useState<"ALL" | "DOCK" | "PHARMACY">("ALL");
   const [showInactive, setShowInactive] = useState(false);
@@ -92,10 +95,19 @@ export default function DeliveryPoints() {
   const [qrOpen, setQrOpen] = useState(false);
   const [qrPoint, setQrPoint] = useState<DeliveryPoint | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [selectedTenantId, setSelectedTenantId] = useState<number | undefined>(undefined);
+
+  // Buscar lista de tenants para o Tenant Selector (Global Admin)
+  const { data: tenantsList } = trpc.tenants.list.useQuery(undefined, {
+    enabled: isGlobalAdmin,
+  });
 
   const { data, isLoading, refetch } = trpc.intraHospital.listDeliveryPoints.useQuery({
     type: filterType === "ALL" ? undefined : filterType,
     activeOnly: !showInactive,
+    tenantId: isGlobalAdmin ? selectedTenantId : undefined,
+  }, {
+    enabled: !isGlobalAdmin || selectedTenantId !== undefined,
   });
 
   const createMut = trpc.intraHospital.createDeliveryPoint.useMutation({
@@ -151,10 +163,14 @@ export default function DeliveryPoints() {
       toast.error("Preencha nome e código externo");
       return;
     }
+    if (isGlobalAdmin && !selectedTenantId) {
+      toast.error("Selecione um cliente antes de criar um ponto de entrega");
+      return;
+    }
     if (editingId) {
-      updateMut.mutate({ id: editingId, ...formData });
+      updateMut.mutate({ id: editingId, ...formData, tenantId: isGlobalAdmin ? selectedTenantId : undefined });
     } else {
-      createMut.mutate(formData);
+      createMut.mutate({ ...formData, tenantId: isGlobalAdmin ? selectedTenantId : undefined });
     }
   }
 
@@ -176,7 +192,7 @@ export default function DeliveryPoints() {
               Cadastre docas e farmácias para rastreabilidade interna
             </p>
           </div>
-          <Button onClick={openCreate} className="gap-2">
+          <Button onClick={openCreate} className="gap-2" disabled={isGlobalAdmin && !selectedTenantId}>
             <Plus className="h-4 w-4" /> Novo Ponto
           </Button>
         </div>

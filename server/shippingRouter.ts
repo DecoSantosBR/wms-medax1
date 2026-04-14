@@ -24,6 +24,7 @@ import {
 import { parseNFE } from "./nfeParser.js";
 import { TRPCError } from "@trpc/server";
 import { getUniqueCode } from "./utils/uniqueCode.js";
+import { applyIntraHospitalTransition } from "./utils/intraHospitalTransition.js";
 import { z } from "zod";
 import { eq, and, or, sql, desc, inArray, isNull } from "drizzle-orm";
 
@@ -973,7 +974,7 @@ export const shippingRouter = router({
         })
         .where(eq(shipmentManifests.id, input.manifestId));
 
-      // Atualizar status dos pedidos
+      // Atualizar status dos pedidos para "shipped" (padrão)
       await db
         .update(pickingOrders)
         .set({
@@ -985,6 +986,17 @@ export const shippingRouter = router({
           sql`${pickingOrders.id} IN (${sql.join(orderIds.map(id => sql`${id}`), sql`, `)})`
         );
 
+      // ===== GATILHO INTRA-HOSPITALAR =====
+      // Para tenants com hasIntraHospitalar=true, transitar pedidos para WAITING_INTERNAL_DOCK
+      const intraResult = await applyIntraHospitalTransition(db, orderIds);
+      if (intraResult.transitioned.length > 0) {
+        console.log(
+          `[INTRA-HOSPITALAR] Romaneio ${manifest.manifestNumber}: ` +
+          `${intraResult.transitioned.length} pedido(s) aguardando descarregamento no hospital.`
+        );
+      }
+      // ===== FIM DO GATILHO INTRA-HOSPITALAR =====
+
       // Atualizar status das NFs
       await db
         .update(invoices)
@@ -995,7 +1007,8 @@ export const shippingRouter = router({
 
       return { 
         success: true, 
-        message: `Romaneio ${manifest.manifestNumber} expedido com sucesso` 
+        message: `Romaneio ${manifest.manifestNumber} expedido com sucesso`,
+        intraHospitalarTransitioned: intraResult.transitioned.length,
       };
     }),
 

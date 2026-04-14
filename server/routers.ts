@@ -102,6 +102,7 @@ export const appRouter = router({
       .input(z.object({
         name: z.string(),
         cnpj: z.string(),
+        hasIntraHospitalar: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
@@ -110,6 +111,7 @@ export const appRouter = router({
         await db.insert(tenants).values({
           name: input.name,
           cnpj: input.cnpj,
+          hasIntraHospitalar: input.hasIntraHospitalar ?? false,
         });
         
         return { success: true };
@@ -128,6 +130,7 @@ export const appRouter = router({
         zipCode: z.string().optional(),
         pickingRule: z.enum(["FIFO", "FEFO", "Direcionado"]).optional(),
         status: z.enum(["active", "inactive", "suspended"]).optional(),
+        hasIntraHospitalar: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
@@ -145,6 +148,7 @@ export const appRouter = router({
             zipCode: input.zipCode,
             pickingRule: input.pickingRule,
             status: input.status,
+            ...(input.hasIntraHospitalar !== undefined && { hasIntraHospitalar: input.hasIntraHospitalar }),
           })
           .where(eq(tenants.id, input.id));
         

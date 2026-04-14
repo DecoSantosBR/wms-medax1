@@ -630,6 +630,45 @@ export const intraHospitalRouter = router({
     }),
 
   /**
+   * Lista pedidos aguardando descarregamento no hospital (status = waiting_internal_dock).
+   * Usado no filtro do dashboard de expedição.
+   */
+  listOrdersWaitingDock: protectedProcedure
+    .input(z.object({
+      tenantId: z.number().optional(),
+      limit: z.number().optional().default(50),
+      offset: z.number().optional().default(0),
+    }))
+    .query(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+
+      const isGlobalAdmin = ctx.user.role === "admin" && (ctx.user.tenantId === 1 || ctx.user.tenantId === null);
+      const activeTenantId = (isGlobalAdmin && input.tenantId) ? input.tenantId : ctx.user.tenantId;
+      if (!activeTenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant não identificado" });
+
+      const orders = await db
+        .select({
+          id: pickingOrders.id,
+          customerOrderNumber: pickingOrders.customerOrderNumber,
+          customerName: pickingOrders.customerName,
+          status: pickingOrders.status,
+          shippedAt: pickingOrders.shippedAt,
+          priority: pickingOrders.priority,
+        })
+        .from(pickingOrders)
+        .where(and(
+          eq(pickingOrders.tenantId, activeTenantId),
+          eq(pickingOrders.status, "waiting_internal_dock"),
+        ))
+        .orderBy(desc(pickingOrders.shippedAt))
+        .limit(input.limit)
+        .offset(input.offset);
+
+      return { orders, total: orders.length };
+    }),
+
+  /**
    * Lista pedidos com status de rastreio intra-hospitalar para o painel de monitorização.
    */
   listOrdersTracking: protectedProcedure

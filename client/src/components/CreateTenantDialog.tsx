@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib/trpc";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -20,6 +21,7 @@ export function CreateTenantDialog() {
   const [formData, setFormData] = useState({
     name: "",
     cnpj: "",
+    hasIntraHospitalar: false,
   });
 
   const utils = trpc.useUtils();
@@ -28,7 +30,7 @@ export function CreateTenantDialog() {
       toast.success("Cliente cadastrado com sucesso!");
       utils.tenants.list.invalidate();
       setOpen(false);
-      setFormData({ name: "", cnpj: "" });
+      setFormData({ name: "", cnpj: "", hasIntraHospitalar: false });
     },
     onError: (error) => {
       toast.error("Erro ao cadastrar cliente: " + error.message);
@@ -58,6 +60,7 @@ export function CreateTenantDialog() {
     createMutation.mutate({
       name: formData.name,
       cnpj: cnpjDigits,
+      hasIntraHospitalar: formData.hasIntraHospitalar,
     });
   };
 
@@ -115,6 +118,27 @@ export function CreateTenantDialog() {
                 required
               />
               <p className="text-xs text-gray-500">Formato: 00.000.000/0000-00</p>
+            </div>
+
+            {/* Módulo Intra-Hospitalar */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="create-intraHospitalar" className="text-sm font-medium">
+                    Habilitar Módulo Intra-Hospitalar
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Ativa rastreabilidade pós-expedição. Pedidos expedidos entrarão automaticamente no fluxo de monitoramento interno do hospital.
+                  </p>
+                </div>
+                <Switch
+                  id="create-intraHospitalar"
+                  checked={formData.hasIntraHospitalar}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, hasIntraHospitalar: checked })
+                  }
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>

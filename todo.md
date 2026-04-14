@@ -4868,3 +4868,39 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] 4 testes de coerência tipo/status
 - [x] 3 testes de formatação de lead-time
 - [x] Total: 25 testes passando em intraHospital.test.ts
+
+---
+## 🏥 Ativação do Fluxo Intra-Hospitalar por Cliente - 14/04/2026
+
+### Schema & Banco
+- [x] Adicionar coluna `hasIntraHospitalar` (boolean, default false) na tabela `tenants` (via SQL direto)
+- [x] Adicionar status `waiting_internal_dock` ao enum de status dos pedidos de picking (via SQL direto)
+- [x] Migrar banco
+
+### Backend
+- [x] tenantRouter: expor `hasIntraHospitalar` no create/update/list
+- [x] intraHospitalRouter: todos os filtros usam `activeTenantId` resolvido (Global Admin usa `input.tenantId`, tenant normal usa `ctx.user.tenantId`)
+- [x] Global Admin: Tenant Selector obrigatório em `scanPoint`, `batchScan`, `createDeliveryPoint`, `listDeliveryPoints`, `getSlaReport`, `listOrdersTracking`, `listOrdersWaitingDock`
+- [x] Gatilho pós-expedição: ao finalizar romanéio (`finalizeManifest`), verifica `hasIntraHospitalar` e transita pedidos para `waiting_internal_dock`
+- [x] Helper `applyIntraHospitalTransition` em `server/utils/intraHospitalTransition.ts`
+- [x] Procedure `listOrdersWaitingDock` adicionada ao intraHospitalRouter
+
+### Frontend
+- [x] Cadastro de Tenant (/tenants): Switch "Habilitar Módulo Intra-Hospitalar" no Dialog de edição e no CreateTenantDialog
+- [x] Badge "Intra-Hosp." na tabela de tenants
+- [x] Coletor Intra-Hospitalar: Tenant Selector para Global Admin (filtra apenas tenants com flag ativa)
+- [x] Página de Pontos de Entrega (/intra-hospitalar/pontos): Tenant Selector para Global Admin
+- [x] Relatório SLA (/intra-hospitalar/sla): Tenant Selector para Global Admin
+- [ ] Filtro de pedidos "Aguardando Descarregamento" no dashboard/picking (pendente)
+- [ ] Ocultar menus Intra-Hospitalar para tenants sem `hasIntraHospitalar` (pendente)
+
+### Segurança
+- [x] `deliveryPoints` isolados por tenantId em todas as queries
+- [x] `deliveryLogs` isolados por tenantId em todas as queries
+- [x] Nenhum checkpoint pode ser criado sem `tenantId` válido (validação no backend)
+
+### Testes
+- [x] Teste: tenant sem flag não transita para WAITING_INTERNAL_DOCK
+- [x] Teste: tenant com flag transita corretamente após expedição
+- [x] Teste: Global Admin sem tenantId selecionado recebe null (não pode criar)
+- [x] Total: 23 testes passando em intraHospital.activation.test.ts

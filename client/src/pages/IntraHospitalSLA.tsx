@@ -6,6 +6,7 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,21 +84,28 @@ const STATUS_COLORS: Record<string, string> = {
 export default function IntraHospitalSLA() {
   const today = new Date().toISOString().split("T")[0];
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const { user } = useAuth();
+  const isGlobalAdmin = user?.role === "admin" && (user?.tenantId === 1 || user?.tenantId === null);
 
   const [startDate, setStartDate] = useState(thirtyDaysAgo);
   const [endDate, setEndDate] = useState(today);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [timelineOrderId, setTimelineOrderId] = useState<number | null>(null);
+  const [selectedTenantId, setSelectedTenantId] = useState<number | undefined>(undefined);
+
+  const { data: tenantsList } = trpc.tenants.list.useQuery(undefined, { enabled: isGlobalAdmin });
 
   const { data: slaData, isLoading: slaLoading, refetch: refetchSla } = trpc.intraHospital.getSlaReport.useQuery({
     startDate,
     endDate,
-  });
+    tenantId: isGlobalAdmin ? selectedTenantId : undefined,
+  }, { enabled: !isGlobalAdmin || selectedTenantId !== undefined });
 
   const { data: ordersData, isLoading: ordersLoading, refetch: refetchOrders } = trpc.intraHospital.listOrdersTracking.useQuery({
     status: statusFilter === "ALL" ? undefined : statusFilter as "ARRIVED_COMPLEX" | "DEPARTED_TO_UNIT" | "ARRIVED_UNIT" | "RECEIVE_COMPLETE",
     limit: 50,
-  });
+    tenantId: isGlobalAdmin ? selectedTenantId : undefined,
+  }, { enabled: !isGlobalAdmin || selectedTenantId !== undefined });
 
   function handleRefresh() {
     refetchSla();
@@ -132,6 +140,33 @@ export default function IntraHospitalSLA() {
             <RefreshCw className="h-4 w-4" /> Atualizar
           </Button>
         </div>
+
+        {/* Tenant Selector (Global Admin) */}
+        {isGlobalAdmin && (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <Label className="text-sm font-medium text-amber-800 whitespace-nowrap">Cliente (obrigatório):</Label>
+                <Select
+                  value={selectedTenantId?.toString() ?? ""}
+                  onValueChange={(v) => setSelectedTenantId(v ? Number(v) : undefined)}
+                >
+                  <SelectTrigger className="w-72 border-amber-300">
+                    <SelectValue placeholder="Selecione o cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(tenantsList ?? []).filter(t => t.hasIntraHospitalar).map(t => (
+                      <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedTenantId && (
+                  <span className="text-xs text-amber-700">Visualizando dados do cliente selecionado</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filtro de período */}
         <Card>

@@ -38,6 +38,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib/trpc";
 import { FileText, Pencil, Trash2 } from "lucide-react";
 import { CreateTenantDialog } from "@/components/CreateTenantDialog";
@@ -66,6 +67,7 @@ export default function Tenants() {
     zipCode: "",
     pickingRule: "FIFO" as "FIFO" | "FEFO" | "Direcionado",
     status: "active" as "active" | "inactive" | "suspended",
+    hasIntraHospitalar: false,
   });
 
   const updateMutation = trpc.tenants.update.useMutation({
@@ -115,6 +117,7 @@ export default function Tenants() {
       zipCode: tenant.zipCode || "",
       pickingRule: tenant.pickingRule || "FIFO",
       status: tenant.status || "active",
+      hasIntraHospitalar: tenant.hasIntraHospitalar ?? false,
     });
     setEditDialogOpen(true);
   };
@@ -248,6 +251,7 @@ export default function Tenants() {
                       <TableHead>Telefone</TableHead>
                       <TableHead>Cidade/UF</TableHead>
                       <TableHead>Regra de Picking</TableHead>
+                      <TableHead>Intra-Hosp.</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -276,6 +280,13 @@ export default function Tenants() {
                           >
                             {tenant.pickingRule || "FIFO"}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {tenant.hasIntraHospitalar ? (
+                            <Badge className="bg-teal-100 text-teal-800 text-xs">Ativo</Badge>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -476,6 +487,27 @@ export default function Tenants() {
                     <SelectItem value="suspended">Suspenso</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Módulo Intra-Hospitalar */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="edit-intraHospitalar" className="text-sm font-medium">
+                    Habilitar Módulo Intra-Hospitalar
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Ativa a rastreabilidade pós-expedição. Pedidos expedidos entrarão automaticamente no fluxo de monitoramento interno do hospital.
+                  </p>
+                </div>
+                <Switch
+                  id="edit-intraHospitalar"
+                  checked={editForm.hasIntraHospitalar}
+                  onCheckedChange={(checked) =>
+                    setEditForm({ ...editForm, hasIntraHospitalar: checked })
+                  }
+                />
               </div>
             </div>
           </div>

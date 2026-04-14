@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { CollectorLayout } from "../../components/CollectorLayout";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +71,9 @@ const PHARMACY_ACTIONS: ActionType[] = ["ARRIVED_UNIT", "RECEIVE_COMPLETE"];
 // ── Componente Principal ──────────────────────────────────────────────────────
 
 export function CollectorIntraHospital() {
+  const { user } = useAuth();
+  const isGlobalAdmin = user?.role === "admin" && (user?.tenantId === 1 || user?.tenantId === null);
+
   const [step, setStep] = useState<ScanStep>("scan_point");
   const [pointCode, setPointCode] = useState("");
   const [selectedPoint, setSelectedPoint] = useState<DeliveryPoint | null>(null);
@@ -74,9 +86,13 @@ export function CollectorIntraHospital() {
     errorCount: number;
     results: Array<{ orderId: number; orderNumber: string | null; success: boolean; error?: string; warning?: string }>;
   } | null>(null);
+  const [selectedTenantId, setSelectedTenantId] = useState<number | undefined>(undefined);
 
   const pointInputRef = useRef<HTMLInputElement>(null);
   const orderInputRef = useRef<HTMLInputElement>(null);
+
+  // Buscar lista de tenants para o Tenant Selector (Global Admin)
+  const { data: tenantsList } = trpc.tenants.list.useQuery(undefined, { enabled: isGlobalAdmin });
 
   // Auto-focus nos inputs
   useEffect(() => {
@@ -86,7 +102,7 @@ export function CollectorIntraHospital() {
 
   // Buscar ponto por código
   const getPointQuery = trpc.intraHospital.getDeliveryPointByCode.useQuery(
-    { externalCode: pointCode },
+    { externalCode: pointCode, tenantId: isGlobalAdmin ? selectedTenantId : undefined },
     {
       enabled: false,
       retry: false,
@@ -197,6 +213,33 @@ export function CollectorIntraHospital() {
   return (
     <CollectorLayout title="Rastreio Intra-Hospitalar">
       <div className="space-y-4 pb-6">
+
+        {/* Tenant Selector (Global Admin) */}
+        {isGlobalAdmin && (
+          <Card className="bg-amber-50 border-amber-200">
+            <CardContent className="pt-3 pb-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-medium text-amber-800 whitespace-nowrap">Cliente:</Label>
+                <Select
+                  value={selectedTenantId?.toString() ?? ""}
+                  onValueChange={(v) => setSelectedTenantId(v ? Number(v) : undefined)}
+                >
+                  <SelectTrigger className="h-8 text-xs border-amber-300">
+                    <SelectValue placeholder="Selecione o cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(tenantsList ?? []).filter(t => t.hasIntraHospitalar).map(t => (
+                      <SelectItem key={t.id} value={t.id.toString()} className="text-xs">{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {isGlobalAdmin && !selectedTenantId && (
+                <p className="text-xs text-amber-700 mt-1">Selecione um cliente para iniciar o rastreio.</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Indicador de progresso */}
         <div className="flex items-center gap-2 px-1">

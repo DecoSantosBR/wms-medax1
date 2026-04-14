@@ -143,6 +143,7 @@ export const tenants = mysqlTable("tenants", {
   email: varchar("email", { length: 320 }),
   pickingRule: mysqlEnum("pickingRule", ["FIFO", "FEFO", "Direcionado"]).default("FIFO").notNull(),
   shippingAddress: varchar("shippingAddress", { length: 50 }), // Endereço de expedição (ex: EXP-01-A)
+  hasIntraHospitalar: boolean("hasIntraHospitalar").default(false).notNull(), // Habilita rastreabilidade intra-hospitalar
   status: mysqlEnum("status", ["active", "inactive", "suspended"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -466,7 +467,7 @@ export const pickingOrders = mysqlTable("pickingOrders", {
   customerName: varchar("customerName", { length: 255 }), // Nome do destinatário (texto livre do pedido original)
   deliveryAddress: text("deliveryAddress"),
   priority: mysqlEnum("priority", ["emergency", "urgent", "normal", "low"]).default("normal").notNull(),
-  status: mysqlEnum("status", ["pending", "validated", "in_wave", "in_progress", "paused", "picking", "picked", "divergent", "checking", "packed", "staged", "invoiced", "shipped", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "validated", "in_wave", "in_progress", "paused", "picking", "picked", "divergent", "checking", "packed", "staged", "invoiced", "shipped", "waiting_internal_dock", "cancelled"]).default("pending").notNull(),
   shippingStatus: mysqlEnum("shippingStatus", ["awaiting_invoice", "invoice_linked", "in_manifest", "shipped"]), // Status de expedição
   totalItems: int("totalItems").default(0).notNull(), // Total de linhas de itens
   totalQuantity: int("totalQuantity").default(0).notNull(), // Quantidade total de unidades
