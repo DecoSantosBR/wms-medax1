@@ -346,6 +346,7 @@ export default function DeliveryPoints() {
             <div>
               <Label>Cliente *</Label>
               {isGlobalAdmin ? (
+                // Global Admin: pode selecionar qualquer tenant com Intra-Hospitalar ativo
                 <Select
                   value={selectedTenantId?.toString() ?? ""}
                   onValueChange={(v) => setSelectedTenantId(v ? Number(v) : undefined)}
@@ -360,11 +361,21 @@ export default function DeliveryPoints() {
                   </SelectContent>
                 </Select>
               ) : (
-                <Input
-                  value={user?.name ?? user?.email ?? `Tenant ${user?.tenantId}`}
-                  disabled
-                  className="bg-gray-50 text-gray-500"
-                />
+                // Tenant normal: Select com apenas o seu próprio tenant (bloqueado)
+                <Select value={user?.tenantId?.toString() ?? ""} disabled>
+                  <SelectTrigger className="bg-gray-50">
+                    <SelectValue placeholder="Carregando...">
+                      {user?.name ?? user?.email ?? `Tenant ${user?.tenantId}`}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {user?.tenantId && (
+                      <SelectItem value={user.tenantId.toString()}>
+                        {user.name ?? user.email ?? `Tenant ${user.tenantId}`}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               )}
               {isGlobalAdmin && !selectedTenantId && (
                 <p className="text-xs text-amber-600 mt-1">Selecione o cliente para associar este ponto de entrega.</p>

@@ -4917,3 +4917,9 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] Adicionar campo "Cliente" (tenantId) no formulário de criação/edição de pontos de entrega em /intra-hospitalar/pontos
   - Global Admin: Select com lista de tenants que têm hasIntraHospitalar=true
   - Tenant normal: campo desabilitado exibindo o nome do usuário/tenant logado
+
+---
+## 🐛 Bug: Campo "Cliente" deve ser Select dropdown para todos os perfis - 14/04/2026
+- [x] Substituir Input desabilitado por Select dropdown no campo "Cliente" do formulário de pontos de entrega
+  - Global Admin: Select editável com tenants habilitados para Intra-Hospitalar
+  - Tenant normal: Select desabilitado (bloqueado) exibindo apenas o seu próprio tenant
