@@ -4904,3 +4904,10 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] Teste: tenant com flag transita corretamente após expedição
 - [x] Teste: Global Admin sem tenantId selecionado recebe null (não pode criar)
 - [x] Total: 23 testes passando em intraHospital.activation.test.ts
+
+---
+## 🏠 Atalho Intra-Hospitalar na Home - 14/04/2026
+- [x] Adicionar card "Intra-Hospitalar" na grade de módulos da Home (/home)
+  - Ícone: Hospital (teal)
+  - Destino: /intra-hospitalar/pontos
+  - Features listadas: Checkpoints de entrega, Timeline por pedido, SLA de trânsito interno, Pontos de descarregamento

@@ -12,7 +12,8 @@ import {
   Warehouse,
   Shield,
   CheckSquare,
-  Smartphone
+  Smartphone,
+  Hospital
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -184,6 +185,20 @@ export default function Home() {
         "Conformidade"
       ],
       href: "/reports"
+    },
+    {
+      title: "Intra-Hospitalar",
+      description: "Rastreabilidade pós-expedição dentro do complexo hospitalar",
+      icon: Hospital,
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+      features: [
+        "Checkpoints de entrega",
+        "Timeline por pedido",
+        "SLA de trânsito interno",
+        "Pontos de descarregamento"
+      ],
+      href: "/intra-hospitalar/pontos"
     },
     {
       title: "Admin",
