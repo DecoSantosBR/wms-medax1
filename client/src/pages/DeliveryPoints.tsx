@@ -342,6 +342,34 @@ export default function DeliveryPoints() {
             <DialogTitle>{editingId ? "Editar Ponto de Entrega" : "Novo Ponto de Entrega"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Campo Cliente */}
+            <div>
+              <Label>Cliente *</Label>
+              {isGlobalAdmin ? (
+                <Select
+                  value={selectedTenantId?.toString() ?? ""}
+                  onValueChange={(v) => setSelectedTenantId(v ? Number(v) : undefined)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(tenantsList ?? []).filter(t => t.hasIntraHospitalar).map(t => (
+                      <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={user?.name ?? user?.email ?? `Tenant ${user?.tenantId}`}
+                  disabled
+                  className="bg-gray-50 text-gray-500"
+                />
+              )}
+              {isGlobalAdmin && !selectedTenantId && (
+                <p className="text-xs text-amber-600 mt-1">Selecione o cliente para associar este ponto de entrega.</p>
+              )}
+            </div>
             <div>
               <Label>Nome *</Label>
               <Input

@@ -4911,3 +4911,9 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
   - Ícone: Hospital (teal)
   - Destino: /intra-hospitalar/pontos
   - Features listadas: Checkpoints de entrega, Timeline por pedido, SLA de trânsito interno, Pontos de descarregamento
+
+---
+## 🐛 Bug: Campo "Cliente" ausente no cadastro de Pontos de Entrega - 14/04/2026
+- [x] Adicionar campo "Cliente" (tenantId) no formulário de criação/edição de pontos de entrega em /intra-hospitalar/pontos
+  - Global Admin: Select com lista de tenants que têm hasIntraHospitalar=true
+  - Tenant normal: campo desabilitado exibindo o nome do usuário/tenant logado
