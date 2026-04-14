@@ -4923,3 +4923,8 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] Substituir Input desabilitado por Select dropdown no campo "Cliente" do formulário de pontos de entrega
   - Global Admin: Select editável com tenants habilitados para Intra-Hospitalar
   - Tenant normal: Select desabilitado (bloqueado) exibindo apenas o seu próprio tenant
+
+---
+## ✨ Melhoria: Coluna "Cliente" na tabela de pontos de entrega - 14/04/2026
+- [x] Retornar tenantName no backend (listDeliveryPoints) via LEFT JOIN com tabela tenants
+- [x] Exibir coluna "Cliente" na tabela de /intra-hospitalar/pontos (visível apenas para Global Admin)

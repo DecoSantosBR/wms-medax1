@@ -284,6 +284,7 @@ export default function DeliveryPoints() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Tipo</TableHead>
+                    {isGlobalAdmin && <TableHead>Cliente</TableHead>}
                     <TableHead>Código Externo (QR)</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Status</TableHead>
@@ -300,6 +301,12 @@ export default function DeliveryPoints() {
                           {point.type === "DOCK" ? "🚚 Doca" : "🏥 Farmácia"}
                         </Badge>
                       </TableCell>
+                      {isGlobalAdmin && (
+                        <TableCell className="text-sm text-gray-600">
+                          {(point as typeof point & { tenantName?: string | null }).tenantName ?? 
+                            <span className="text-gray-400 italic">—</span>}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">{point.externalCode}</code>
                       </TableCell>

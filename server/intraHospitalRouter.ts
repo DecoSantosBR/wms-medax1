@@ -11,6 +11,7 @@ import {
   deliveryLogs,
   pickingOrders,
   systemUsers,
+  tenants,
 } from "../drizzle/schema";
 import { eq, and, desc, inArray, sql, gte, lte } from "drizzle-orm";
 
@@ -91,7 +92,24 @@ export const intraHospitalRouter = router({
       if (input.type) conditions.push(eq(deliveryPoints.type, input.type));
       if (input.activeOnly) conditions.push(eq(deliveryPoints.active, true));
 
-      return db.select().from(deliveryPoints).where(and(...conditions)).orderBy(deliveryPoints.type, deliveryPoints.name);
+      const rows = await db
+        .select({
+          id: deliveryPoints.id,
+          tenantId: deliveryPoints.tenantId,
+          name: deliveryPoints.name,
+          type: deliveryPoints.type,
+          externalCode: deliveryPoints.externalCode,
+          description: deliveryPoints.description,
+          active: deliveryPoints.active,
+          createdAt: deliveryPoints.createdAt,
+          tenantName: tenants.name,
+        })
+        .from(deliveryPoints)
+        .leftJoin(tenants, eq(deliveryPoints.tenantId, tenants.id))
+        .where(and(...conditions))
+        .orderBy(deliveryPoints.type, deliveryPoints.name);
+
+      return rows;
     }),
 
   /** Busca ponto de entrega por externalCode (para scan de QR Code) */
