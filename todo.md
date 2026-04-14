@@ -4934,3 +4934,16 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] Diagnosticar e corrigir a rota /admin (404 Page Not Found)
   - Causa: página Admin.tsx não existia e rota não estava registrada no App.tsx
   - Solução: criado Admin.tsx com painel de módulos, zona de perigo (Global Admin) e conformidade ANVISA; rota /admin registrada no App.tsx
+
+---
+## ✨ Funcionalidade: Limpeza de Dados de Teste em /admin - 14/04/2026
+- [x] Backend: adminRouter com procedures `cleanupPreview` (query) e `cleanupTestData` (mutation)
+  - Escopos: receiving, picking, shipping, inventory, intraHospital
+  - Filtro por tenantId opcional (Global Admin pode limpar todos os tenants)
+  - Deleção em ordem correta para respeitar FKs
+- [x] Frontend: componente CleanupTestDataModal com 3 passos
+  - Passo 1: checkboxes de escopo (selecionar todos)
+  - Passo 2: preview com contagem de registros + campo CONFIRMAR
+  - Passo 3: resultado com contagem de registros removidos
+- [x] Botão "Executar" em /admin abre o modal real (não mais toast de suporte)
+- [x] 24 testes passando em admin.cleanup.test.ts

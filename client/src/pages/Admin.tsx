@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useState } from "react";
 import {
   Shield,
   Trash2,
@@ -21,9 +22,11 @@ import {
   Building2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { CleanupTestDataModal } from "@/components/CleanupTestDataModal";
 
 export default function Admin() {
   const { user } = useAuth();
+  const [cleanupModalOpen, setCleanupModalOpen] = useState(false);
   const isGlobalAdmin = user?.role === "admin" && (user?.tenantId === 1 || user?.tenantId === null);
 
   // Estatísticas rápidas
@@ -121,7 +124,7 @@ export default function Admin() {
       title: "Limpeza de Dados de Teste",
       description: "Remove pedidos, recebimentos e movimentações criados para testes. Esta ação é irreversível.",
       icon: Trash2,
-      action: () => toast.warning("Funcionalidade disponível apenas via suporte técnico para garantir integridade dos dados."),
+      action: () => setCleanupModalOpen(true),
     },
     {
       title: "Reindexar Estoque",
@@ -251,6 +254,12 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de Limpeza de Dados de Teste */}
+      <CleanupTestDataModal
+        open={cleanupModalOpen}
+        onClose={() => setCleanupModalOpen(false)}
+      />
     </DashboardLayout>
   );
 }
