@@ -54,9 +54,15 @@ export function CleanupTestDataModal({ open, onClose, tenantId, tenantName }: Pr
   }, [open]);
 
   // Preview query — só executa quando step = "preview"
+  // staleTime=0 e gcTime=0 garantem que o resultado não seja cacheado entre aberturas do modal
   const { data: preview, isLoading: previewLoading } = trpc.admin.cleanupPreview.useQuery(
     { tenantId, scopes: selectedScopes.length > 0 ? selectedScopes : ["receiving"] },
-    { enabled: step === "preview" && selectedScopes.length > 0 }
+    {
+      enabled: step === "preview" && selectedScopes.length > 0,
+      staleTime: 0,
+      gcTime: 0,
+      refetchOnMount: true,
+    }
   );
 
   const cleanupMutation = trpc.admin.cleanupTestData.useMutation({
@@ -70,6 +76,8 @@ export function CleanupTestDataModal({ open, onClose, tenantId, tenantName }: Pr
     },
   });
 
+  const utils = trpc.useUtils();
+
   const toggleScope = (scope: Scope) => {
     setSelectedScopes(prev =>
       prev.includes(scope) ? prev.filter(s => s !== scope) : [...prev, scope]
@@ -80,11 +88,13 @@ export function CleanupTestDataModal({ open, onClose, tenantId, tenantName }: Pr
     setSelectedScopes(prev => prev.length === ALL_SCOPES.length ? [] : [...ALL_SCOPES]);
   };
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
     if (selectedScopes.length === 0) {
       toast.warning("Selecione ao menos um escopo.");
       return;
     }
+    // Invalida o cache antes de ir para o preview para garantir dados frescos
+    await utils.admin.cleanupPreview.invalidate();
     setStep("preview");
   };
 

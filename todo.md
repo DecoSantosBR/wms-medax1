@@ -4947,3 +4947,8 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
   - Passo 3: resultado com contagem de registros removidos
 - [x] Botão "Executar" em /admin abre o modal real (não mais toast de suporte)
 - [x] 24 testes passando em admin.cleanup.test.ts
+
+---
+## 🐛 Bug: Modal de Limpeza pula Passo 1 - 14/04/2026
+- [x] Corrigir cache do cleanupPreview — query retornava 0 registros por cache stale
+  - Solução: staleTime=0, gcTime=0, refetchOnMount=true + invalidate() ao entrar no preview
