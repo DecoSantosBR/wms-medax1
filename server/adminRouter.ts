@@ -64,8 +64,9 @@ export const adminRouter = router({
       const counts: Record<string, number> = {};
 
       const count = async (table: string, where = "") => {
-        const [r] = await db.execute(sql.raw(`SELECT COUNT(*) as cnt FROM ${table} ${where}`));
-        return Number((r as unknown as { cnt: string | number }).cnt ?? 0);
+        // db.execute retorna [[rows], [fields]] — precisa de desestruturação dupla
+        const [[r]] = await db.execute(sql.raw(`SELECT COUNT(*) as cnt FROM ${table} ${where}`)) as unknown as [[{ cnt: string | number }]];
+        return Number(r?.cnt ?? 0);
       };
 
       if (input.scopes.includes("receiving")) {

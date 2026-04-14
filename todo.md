@@ -4952,3 +4952,11 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 ## 🐛 Bug: Modal de Limpeza pula Passo 1 - 14/04/2026
 - [x] Corrigir cache do cleanupPreview — query retornava 0 registros por cache stale
   - Solução: staleTime=0, gcTime=0, refetchOnMount=true + invalidate() ao entrar no preview
+
+---
+## 🐛 Bug: cleanupPreview retorna 0 registros (persistente) - 14/04/2026
+- [x] Diagnosticar por que cleanupPreview retorna 0 apesar de haver registros no banco
+  - Causa raiz: db.execute(sql.raw()) retorna [[rows], [fields]] (array duplo)
+  - O código usava `const [r] = result` que capturava o array de rows, não a row
+  - `r.cnt` era `undefined` pois `r` era `[{cnt:2}]` e não `{cnt:2}`
+- [x] Corrigir para `const [[r]] = await db.execute(...)` com desestruturação dupla
