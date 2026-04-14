@@ -1,6 +1,6 @@
 import { CollectorLayout } from "../../components/CollectorLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Package, Scan, TruckIcon, ArrowLeftRight } from "lucide-react";
+import { Package, Scan, TruckIcon, ArrowLeftRight, Building2 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "../../components/ui/button";
 
@@ -37,6 +37,14 @@ export function CollectorHome() {
       path: "/collector/movement",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
+    },
+    {
+      title: "Intra-Hospitalar",
+      description: "Rastreio de entrega interna",
+      icon: Building2,
+      path: "/collector/intra-hospitalar",
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
     },
   ];
 

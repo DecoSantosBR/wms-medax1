@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OrderIntraTimeline } from "@/components/OrderIntraTimeline";
 import { ImportOrdersDialog } from "@/components/ImportOrdersDialog";
 import { useBusinessError } from "@/hooks/useBusinessError";
 import { ProductCombobox } from "@/components/ProductCombobox";
@@ -1039,6 +1040,16 @@ export default function PickingOrders() {
                   </div>
                 )}
               </div>
+
+              {/* Rastreio Intra-Hospitalar */}
+              {editingOrder?.id && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <span>🏥</span> Rastreio Intra-Hospitalar
+                  </h3>
+                  <OrderIntraTimeline orderId={editingOrder.id} />
+                </div>
+              )}
 
               {/* Botões de Ação */}
               <div className="flex gap-2 justify-end pt-4 border-t">

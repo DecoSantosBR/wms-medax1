@@ -4818,3 +4818,53 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 - [x] Adicionar proteção de idempotência: finish e prepareFinish rejeitam sessão já completed
 - [x] Adicionar proteção de idempotência: start rejeita ordem já completed
 - [x] Testes de regressão: 4 testes passando em blindConference.tenant.fix.test.ts
+
+---
+## 🏥 Módulo Intra-Hospitalar (Last Mile Interna) - 14/04/2026
+
+### Modelagem de Dados
+- [x] Criar tabela deliveryPoints (id, tenantId, name, type DOCK|PHARMACY, externalCode, isActive)
+- [x] Criar tabela deliveryLogs (id, orderId, deliveryPointId, status, timestamp, userId, tenantId, notes)
+- [x] Migrar banco via SQL direto
+
+### Backend (tRPC)
+- [x] Router intraHospital: CRUD de deliveryPoints (list, create, update, delete)
+- [x] Procedure scanPoint: registrar checkpoint com validação de fluxo
+- [x] Procedure batchScan: bipar múltiplos pedidos para um ponto de entrega
+- [x] Procedure getOrderTimeline: retornar histórico de checkpoints com lead-time por etapa
+- [x] Procedure getSlaReport: calcular tempo médio/min/max de trânsito por etapa
+- [x] Procedure listOrdersTracking: listar pedidos em rastreio com último status
+- [x] Validação de fluxo: impedir ARRIVED_UNIT sem ARRIVED_COMPLEX anterior
+- [x] Validação de fluxo: impedir RECEIVE_COMPLETE sem ARRIVED_UNIT anterior
+- [x] Multi-tenancy: todos os dados isolados por tenantId
+
+### Interface Admin (Cadastro)
+- [x] Página /intra-hospitalar/pontos: listar, criar, editar, desativar DeliveryPoints
+- [x] Exibir QR Code gerado a partir do externalCode
+- [x] Filtro por tipo (DOCK / PHARMACY) e status ativo/inativo
+- [x] Menu lateral: "Pontos de Entrega" e "SLA Intra-Hosp."
+
+### Interface Coletor (/collector/intra-hospitalar)
+- [x] Passo 1: Scan do QR Code do ponto de entrega (ou entrada manual)
+- [x] Passo 2: Seleção de ação (Chegada / Saída / Recebimento)
+- [x] Passo 3: Leitura/seleção de pedidos (batch update)
+- [x] Lógica de status automático por tipo de ponto e ação
+- [x] Alerta visual quando pedido não passou pela doca
+- [x] Feedback háptico (vibração) ao bipar pedido
+- [x] Card "Intra-Hospitalar" no CollectorHome
+
+### Interface Web (Monitorização)
+- [x] Seção "Rastreio Intra-Hospitalar" no detalhe do pedido (PickingOrders)
+- [x] Timeline vertical com data, hora, responsável e ponto por checkpoint
+- [x] Indicador de alerta: chegou à farmácia sem registro na doca
+- [x] Página /intra-hospitalar/sla: KPIs + tabela de SLA por etapa + lista de pedidos em rastreio
+- [x] Filtros por período no relatório de SLA
+- [x] Modal de timeline ao clicar em pedido no relatório
+
+### Testes
+- [x] 13 testes de validação de fluxo (transições inválidas rejeitadas)
+- [x] 2 testes de batch scan
+- [x] 3 testes de cálculo de lead-time
+- [x] 4 testes de coerência tipo/status
+- [x] 3 testes de formatação de lead-time
+- [x] Total: 25 testes passando em intraHospital.test.ts

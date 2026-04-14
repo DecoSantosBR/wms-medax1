@@ -1236,3 +1236,66 @@ export const clientPortalSessions = mysqlTable("clientPortalSessions", {
 
 export type ClientPortalSession = typeof clientPortalSessions.$inferSelect;
 export type InsertClientPortalSession = typeof clientPortalSessions.$inferInsert;
+
+// ============================================================================
+// MÓDULO INTRA-HOSPITALAR (LAST MILE INTERNA)
+// ============================================================================
+
+/**
+ * Pontos de Entrega Intra-Hospitalar
+ * Representa locais físicos como docas de descarregamento e farmácias internas.
+ * O externalCode é usado para gerar QR Codes que o coletor irá bipar.
+ */
+export const deliveryPoints = mysqlTable("deliveryPoints", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: mysqlEnum("type", ["DOCK", "PHARMACY"]).notNull(),
+  externalCode: varchar("externalCode", { length: 100 }).notNull(), // Código para QR Code
+  description: text("description"),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("dp_tenant_idx").on(table.tenantId),
+  externalCodeIdx: index("dp_external_code_idx").on(table.externalCode),
+  tenantCodeUniq: unique("dp_tenant_code_uniq").on(table.tenantId, table.externalCode),
+}));
+
+export type DeliveryPoint = typeof deliveryPoints.$inferSelect;
+export type InsertDeliveryPoint = typeof deliveryPoints.$inferInsert;
+
+/**
+ * Log de Checkpoints de Entrega Intra-Hospitalar
+ * Registra cada evento da jornada do pedido dentro do complexo hospitalar.
+ * Status possíveis (em ordem lógica de fluxo):
+ *   ARRIVED_COMPLEX  → Pedido chegou à doca de descarregamento
+ *   DEPARTED_TO_UNIT → Pedido saiu da doca em direção à farmácia
+ *   ARRIVED_UNIT     → Pedido chegou à farmácia de destino
+ *   RECEIVE_COMPLETE → Farmácia concluiu o recebimento do pedido
+ */
+export const deliveryLogs = mysqlTable("deliveryLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  orderId: int("orderId").notNull(), // FK para pickingOrders
+  deliveryPointId: int("deliveryPointId").notNull(), // FK para deliveryPoints
+  status: mysqlEnum("status", [
+    "ARRIVED_COMPLEX",
+    "DEPARTED_TO_UNIT",
+    "ARRIVED_UNIT",
+    "RECEIVE_COMPLETE",
+  ]).notNull(),
+  notes: text("notes"), // Observações opcionais do operador
+  userId: int("userId"), // FK para systemUsers (operador que registrou)
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("dl_tenant_idx").on(table.tenantId),
+  orderIdx: index("dl_order_idx").on(table.orderId),
+  pointIdx: index("dl_point_idx").on(table.deliveryPointId),
+  statusIdx: index("dl_status_idx").on(table.status),
+  orderStatusIdx: index("dl_order_status_idx").on(table.orderId, table.status),
+}));
+
+export type DeliveryLog = typeof deliveryLogs.$inferSelect;
+export type InsertDeliveryLog = typeof deliveryLogs.$inferInsert;

@@ -33,6 +33,9 @@ import { CollectorReceiving } from "./pages/collector/CollectorReceiving";
 import { CollectorPicking } from "./pages/collector/CollectorPicking";
 import { CollectorStage } from "./pages/collector/CollectorStage";
 import { CollectorMovement } from "./pages/collector/CollectorMovement";
+import { CollectorIntraHospital } from "./pages/collector/CollectorIntraHospital";
+import DeliveryPoints from "./pages/DeliveryPoints";
+import IntraHospitalSLA from "./pages/IntraHospitalSLA";
 import { ClientPortalLogin } from "@/pages/client/ClientPortalLogin";
 import { ClientPortalFirstAccess } from "@/pages/client/ClientPortalFirstAccess";
 import { ClientPortalDashboard } from "@/pages/client/ClientPortalDashboard";
@@ -78,6 +81,9 @@ function Router() {
         <Route path="/collector/picking" component={CollectorPicking} />
         <Route path="/collector/stage" component={CollectorStage} />
         <Route path="/collector/movement" component={CollectorMovement} />
+        <Route path="/collector/intra-hospitalar" component={CollectorIntraHospital} />
+        <Route path="/intra-hospitalar/pontos" component={DeliveryPoints} />
+        <Route path="/intra-hospitalar/sla" component={IntraHospitalSLA} />
       
       {/* Portal do Cliente */}
       <Route path="/portal/login" component={ClientPortalLogin} />

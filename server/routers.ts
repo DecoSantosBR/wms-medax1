@@ -23,6 +23,7 @@ import { maintenanceRouter } from "./maintenanceRouter";
 import { labelRouter } from "./labelRouter";
 import { clientPortalRouter } from "./clientPortalRouter";
 import { collectorPickingRouter } from "./collectorPickingRouter";
+import { intraHospitalRouter } from "./intraHospitalRouter";
 import { getUniqueCode } from "./utils/uniqueCode";
 import { toMySQLDate } from "../shared/utils";
 
@@ -41,6 +42,7 @@ export const appRouter = router({
   labels: labelRouter,
   clientPortal: clientPortalRouter,
   collectorPicking: collectorPickingRouter,
+  intraHospital: intraHospitalRouter,
   
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
