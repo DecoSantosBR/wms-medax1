@@ -4928,3 +4928,9 @@ Eliminar permanentemente qualquer possibilidade de agrupamento incorreto usando 
 ## ✨ Melhoria: Coluna "Cliente" na tabela de pontos de entrega - 14/04/2026
 - [x] Retornar tenantName no backend (listDeliveryPoints) via LEFT JOIN com tabela tenants
 - [x] Exibir coluna "Cliente" na tabela de /intra-hospitalar/pontos (visível apenas para Global Admin)
+
+---
+## 🐛 Bug: Módulo Admin retorna 404 - 14/04/2026
+- [x] Diagnosticar e corrigir a rota /admin (404 Page Not Found)
+  - Causa: página Admin.tsx não existia e rota não estava registrada no App.tsx
+  - Solução: criado Admin.tsx com painel de módulos, zona de perigo (Global Admin) e conformidade ANVISA; rota /admin registrada no App.tsx

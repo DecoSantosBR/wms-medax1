@@ -36,6 +36,7 @@ import { CollectorMovement } from "./pages/collector/CollectorMovement";
 import { CollectorIntraHospital } from "./pages/collector/CollectorIntraHospital";
 import DeliveryPoints from "./pages/DeliveryPoints";
 import IntraHospitalSLA from "./pages/IntraHospitalSLA";
+import Admin from "./pages/Admin";
 import { ClientPortalLogin } from "@/pages/client/ClientPortalLogin";
 import { ClientPortalFirstAccess } from "@/pages/client/ClientPortalFirstAccess";
 import { ClientPortalDashboard } from "@/pages/client/ClientPortalDashboard";
@@ -76,6 +77,7 @@ function Router() {
       <Route path={"/scanner-test"} component={ScannerTest} />
       <Route path={"/settings/printing"} component={PrintSettings} />
       <Route path={"/reports"} component={Reports} />
+      <Route path={"/admin"} component={Admin} />
         <Route path="/collector" component={CollectorHome} />
         <Route path="/collector/receiving" component={CollectorReceiving} />
         <Route path="/collector/picking" component={CollectorPicking} />
